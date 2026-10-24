@@ -29,6 +29,9 @@ START_Y = 330
 METEOR_COUNT = 28
 MINE_COUNT = 10
 SHIELD_COUNT = 8
+BOMB_COUNT = 5
+PLAYER_COLLISION_RADIUS = 18
+HAZARD_SEPARATION = 48
 COLORS = ("#54e1ff", "#ffc857", "#ff6f91", "#a78bfa")
 
 ANCHORS = tuple(
@@ -61,6 +64,7 @@ class Player:
     anchor_y: float | None = None
     rope_length: float = 0
     finished: bool = False
+    eliminated: bool = False
     rank: int | None = None
     checkpoint: int = 0
     lap: int = 0
@@ -83,6 +87,7 @@ class Player:
         self.anchor_y = None
         self.rope_length = 0
         self.finished = False
+        self.eliminated = False
         self.rank = None
         self.checkpoint = 0
         self.lap = 0
@@ -189,12 +194,51 @@ def mine_at(index: int, now: float, lap: int) -> dict[str, float]:
     return {"x": x, "y": y, "r": 19 + (index % 3) * 3}
 
 
+def bomb_at(index: int, now: float) -> dict[str, float]:
+    """Random-looking moving bomb hazards, deterministic across all racers."""
+    seed = index + 1
+    random_x = ((seed * 1103515245 + 12345) % 2_147_483_647) / 2_147_483_647
+    random_y = ((seed * 1664525 + 1013904223) % 4_294_967_296) / 4_294_967_296
+    random_motion = ((seed * 22695477 + 1) % 4_294_967_296) / 4_294_967_296
+    phase = math.tau
+    base_x = 850 + index * ((FINISH_X - 1700) / (BOMB_COUNT - 1)) + (random_x - 0.5) * 240
+    base_y = 105 + random_y * 360
+    return {
+        "x": base_x + math.sin(now * (0.35 + random_motion * 0.3) + random_y * phase) * (70 + random_x * 80),
+        "y": base_y + math.cos(now * (0.55 + random_x * 0.35) + random_motion * phase) * (28 + random_y * 42),
+        "r": 21 + random_motion * 4,
+    }
+
+
 def shield_at(index: int, now: float) -> dict[str, float]:
     return {
         "x": 850 + index * 1250,
         "y": 145 + ((index * 97) % 300) + math.sin(now * 0.9 + index * 1.8) * 24,
         "r": 19,
     }
+
+
+def swept_circle_overlap(
+    player_start: tuple[float, float],
+    player_end: tuple[float, float],
+    circle_start: tuple[float, float],
+    circle_end: tuple[float, float],
+    radius: float,
+) -> bool:
+    """Check relative motion across a tick so fast objects cannot tunnel through."""
+    start_x = player_start[0] - circle_start[0]
+    start_y = player_start[1] - circle_start[1]
+    end_x = player_end[0] - circle_end[0]
+    end_y = player_end[1] - circle_end[1]
+    dx = end_x - start_x
+    dy = end_y - start_y
+    length_squared = dx * dx + dy * dy
+    if length_squared == 0:
+        return math.hypot(start_x, start_y) <= radius
+    t = max(0.0, min(1.0, -(start_x * dx + start_y * dy) / length_squared))
+    closest_x = start_x + dx * t
+    closest_y = start_y + dy * t
+    return closest_x * closest_x + closest_y * closest_y <= radius * radius
 
 
 class GameEngine:
@@ -269,6 +313,7 @@ class GameEngine:
                     "anchorX": player.anchor_x,
                     "anchorY": player.anchor_y,
                     "finished": player.finished,
+                    "eliminated": player.eliminated,
                     "rank": player.rank,
                     "score": player.score,
                     "collectedOrbs": list(player.collected_orbs),
@@ -324,7 +369,7 @@ class GameEngine:
         if room.host_id == guest_id:
             room.host_id = next(iter(room.players))
 
-        if room.status == "racing" and all(p.finished for p in room.players.values()):
+        if room.status == "racing" and all(p.finished or p.eliminated for p in room.players.values()):
             room.status = "finished"
             await self.sio.emit("race:finished", self.game_payload(room), room=room.code)
         await self._emit_room(room)
@@ -353,7 +398,7 @@ class GameEngine:
         player.score += 1000 + time_bonus + checkpoint_bonus + lap_bonus + placement_bonus
         if not room.winner:
             room.winner = player.id
-        if all(other.finished for other in room.players.values()):
+        if all(other.finished or other.eliminated for other in room.players.values()):
             room.status = "finished"
             await self.sio.emit("room:update", self.room_payload(room), room=room.code)
             await self.sio.emit("race:finished", self.game_payload(room), room=room.code)
@@ -402,8 +447,8 @@ class GameEngine:
             nx, ny = dx / dist, dy / dist
 
         # Escape the hazard volume, then apply a recovery velocity.
-        player.x += nx * 42
-        player.y += ny * 42
+        player.x += nx * HAZARD_SEPARATION
+        player.y += ny * HAZARD_SEPARATION
         player.vx = max(280, abs(player.vx) * 0.55 + 120) * (1 if nx >= 0 else -0.35)
         # Prefer a forward boost after a shield block so the race keeps momentum.
         if player.vx < 260:
@@ -520,7 +565,7 @@ class GameEngine:
             if room is None or room.status != "racing":
                 return
             player = self._player_for(room, guest_id, sid)
-            if player is not None and not player.finished:
+            if player is not None and not player.finished and not player.eliminated:
                 player.held = bool(payload.get("held"))
 
     async def race_start(self, sid: str, data: Any) -> None:
@@ -617,10 +662,12 @@ class GameEngine:
         if room.status != "racing":
             return
         now = max(0, (now_ms - room.started_at) / 1000)
+        previous_now = max(0, now - dt)
 
         for player in room.players.values():
-            if player.finished or not player.socket_id:
+            if player.finished or player.eliminated or not player.socket_id:
                 continue
+            previous_position = (player.x, player.y)
 
             if player.held and not player.attached:
                 best: dict[str, float] | None = None
@@ -675,6 +722,29 @@ class GameEngine:
                 player.vx *= 1250 / speed
                 player.vy *= 1250 / speed
 
+            # Resolve fatal bombs immediately after movement. This must happen
+            # before any early-return path (such as a fall respawn), otherwise
+            # a same-tick collision could be silently skipped.
+            bomb_hit = False
+            for index in range(BOMB_COUNT):
+                previous_bomb = bomb_at(index, previous_now)
+                bomb = bomb_at(index, now)
+                if swept_circle_overlap(
+                    previous_position,
+                    (player.x, player.y),
+                    (previous_bomb["x"], previous_bomb["y"]),
+                    (bomb["x"], bomb["y"]),
+                    bomb["r"] + PLAYER_COLLISION_RADIUS,
+                ):
+                    bomb_hit = True
+                    break
+            if bomb_hit:
+                player.eliminated = True
+                self._clear_grapple(player)
+                player.vx = 0
+                player.vy = 0
+                continue
+
             # Out-of-bounds is a lethal fall — shield cannot save a drop into the void.
             if player.y < -250 or player.y > 760:
                 self._respawn(player, now_ms)
@@ -684,40 +754,67 @@ class GameEngine:
             # can absorb a collision occurring on the same tick.
             for index in range(SHIELD_COUNT):
                 relic = shield_at(index, now)
+                previous_relic = shield_at(index, previous_now)
                 if (
                     index not in player.collected_shields
-                    and math.hypot(relic["x"] - player.x, relic["y"] - player.y) < relic["r"] + 18
+                    and swept_circle_overlap(
+                        previous_position,
+                        (player.x, player.y),
+                        (previous_relic["x"], previous_relic["y"]),
+                        (relic["x"], relic["y"]),
+                        relic["r"] * 1.12 + PLAYER_COLLISION_RADIUS,
+                    )
                 ):
                     player.collected_shields.append(index)
                     player.shield_charge = True
                     player.score += 150
 
             if player.invulnerable_until <= now_ms:
-                hit_x = hit_y = None
+                hit: tuple[float, float] | None = None
                 for index in range(METEOR_COUNT):
                     meteor = meteoroid_at(index, now, player.lap)
-                    if math.hypot(meteor["x"] - player.x, meteor["y"] - player.y) < meteor["r"] + 10:
-                        hit_x, hit_y = meteor["x"], meteor["y"]
+                    previous_meteor = meteoroid_at(index, previous_now, player.lap)
+                    if swept_circle_overlap(
+                        previous_position,
+                        (player.x, player.y),
+                        (previous_meteor["x"], previous_meteor["y"]),
+                        (meteor["x"], meteor["y"]),
+                        meteor["r"] + PLAYER_COLLISION_RADIUS,
+                    ):
+                        hit = (meteor["x"], meteor["y"])
                         break
-                if hit_x is None:
+                if hit is None:
                     for index in range(MINE_COUNT):
                         mine = mine_at(index, now, player.lap)
-                        if math.hypot(mine["x"] - player.x, mine["y"] - player.y) < mine["r"] + 10:
-                            hit_x, hit_y = mine["x"], mine["y"]
+                        previous_mine = mine_at(index, previous_now, player.lap)
+                        if swept_circle_overlap(
+                            previous_position,
+                            (player.x, player.y),
+                            (previous_mine["x"], previous_mine["y"]),
+                            (mine["x"], mine["y"]),
+                            mine["r"] * 1.12 + PLAYER_COLLISION_RADIUS,
+                        ):
+                            hit = (mine["x"], mine["y"])
                             break
-
-                if hit_x is not None:
+                if hit is not None:
                     if player.shield_charge:
-                        self._absorb_hit(player, now_ms, hit_x, hit_y)
+                        self._absorb_hit(player, now_ms, *hit)
                     else:
                         self._respawn(player, now_ms)
                         continue
 
             for index in range(17):
                 orb = spirit_orb_at(index, now, player.lap)
+                previous_orb = spirit_orb_at(index, previous_now, player.lap)
                 if (
                     index not in player.collected_orbs
-                    and math.hypot(orb["x"] - player.x, orb["y"] - player.y) < orb["r"] + 18
+                    and swept_circle_overlap(
+                        previous_position,
+                        (player.x, player.y),
+                        (previous_orb["x"], previous_orb["y"]),
+                        (orb["x"], orb["y"]),
+                        orb["r"] * 1.15 + PLAYER_COLLISION_RADIUS,
+                    )
                 ):
                     player.collected_orbs.append(index)
                     player.score += int(orb["value"])
@@ -736,11 +833,11 @@ class GameEngine:
                     player.x = START_X
                     player.y = START_Y
                     player.vx = max(280, abs(player.vx) * 0.55)
-                    player.vy = -80
+                    player.vy = 0
                     GameEngine._clear_grapple(player)
                     player.checkpoint = 0
 
-        if all(player.finished for player in room.players.values()):
+        if all(player.finished or player.eliminated for player in room.players.values()):
             room.status = "finished"
 
     async def tick(self, *, dt: float = TICK_SECONDS, now_ms: float | None = None) -> None:
@@ -800,6 +897,7 @@ __all__ = [
     "TICK_SECONDS",
     "TOTAL_LAPS",
     "clean_name",
+    "bomb_at",
     "meteoroid_at",
     "mine_at",
     "shield_at",

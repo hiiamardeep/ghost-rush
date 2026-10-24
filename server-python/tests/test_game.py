@@ -108,7 +108,7 @@ class GameEngineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(set(payload), {"status", "winner", "startedAt", "totalLaps", "players"})
         self.assertEqual(set(payload["players"][1]), {
             "id", "name", "color", "x", "y", "vx", "vy", "attached", "anchorX", "anchorY",
-            "finished", "rank", "score", "collectedOrbs", "shieldCharge", "collectedShields",
+            "finished", "eliminated", "rank", "score", "collectedOrbs", "shieldCharge", "collectedShields",
             "finishTime", "lap", "connected",
         })
 
