@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 export type PlayerState = {
   id: string; name: string; x: number; y: number; vx: number; vy: number;
   attached: boolean; anchorX: number | null; anchorY: number | null;
-  finished: boolean; rank: number | null; score: number; finishTime: number | null; color: string;
+  finished: boolean; eliminated?: boolean; rank: number | null; score: number; finishTime: number | null; color: string;
   connected?: boolean;
   lap?: number;
   collectedOrbs?: number[];
@@ -26,6 +26,7 @@ const FINISH_X = 10800;
 const TOTAL_LAPS = 3;
 const METEOR_COUNT = 28;
 const MINE_COUNT = 10;
+const BOMB_COUNT = 5;
 const makeAnchors = () => Array.from({length: 42}, (_,i) => ({
   x: 320 + i*250, y: 80 + ((Math.sin(i*1.71)+1)*.5)*150
 }));
@@ -56,6 +57,22 @@ const mineAt = (i: number, now: number, lap: number) => {
   return { x, y, r: 19 + (i % 3) * 3 };
 };
 
+/** Random-looking bomb paths, deterministic and matched by the server. */
+const bombAt = (i: number, now: number) => {
+  const seed = i + 1;
+  const randomX = ((seed * 1103515245 + 12345) % 2147483647) / 2147483647;
+  const randomY = ((seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const randomMotion = ((seed * 22695477 + 1) % 4294967296) / 4294967296;
+  const phase = Math.PI * 2;
+  const baseX = 850 + i * ((FINISH_X - 1700) / (BOMB_COUNT - 1)) + (randomX - 0.5) * 240;
+  const baseY = 105 + randomY * 360;
+  return {
+    x: baseX + Math.sin(now * (0.35 + randomMotion * 0.3) + randomY * phase) * (70 + randomX * 80),
+    y: baseY + Math.cos(now * (0.55 + randomX * 0.35) + randomMotion * phase) * (28 + randomY * 42),
+    r: 21 + randomMotion * 4,
+  };
+};
+
 const spiritOrbAt = (i: number, now: number) => ({
   x: 480 + i * 620,
   y: 180 + ((i * 113) % 330) + Math.sin(now * 1.35 + i * 1.7) * 28,
@@ -66,7 +83,6 @@ const shieldAt = (i: number, now: number) => ({
   y: 145 + ((i * 97) % 300) + Math.sin(now * 0.9 + i * 1.8) * 24,
   r: 19,
 });
-
 export default function GameCanvas({state,myId,onHoldChange}:Props) {
   const hostRef=useRef<HTMLDivElement>(null);
   const sceneRef=useRef<any>(null);
@@ -109,12 +125,13 @@ export default function GameCanvas({state,myId,onHoldChange}:Props) {
         });
         this.finishTitle=this.add.text(10812,78,'LAP',{
           fontFamily:'Space Grotesk, Arial',
-          fontSize:'19px',
+          fontSize:'17px',
           fontStyle:'bold',
-          color:'#aaf8ff',
-          stroke:'#11132f',
-          strokeThickness:5,
-          shadow:{color:'#36dfff',blur:18,fill:true}
+          color:'#e4d9ff',
+          stroke:'#111321',
+          strokeThickness:4,
+          shadow:{color:'#9b7bff',blur:16,fill:true},
+          letterSpacing:1
         }).setOrigin(0.5);
         this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
         this.input.keyboard?.on('keydown-SPACE',(e:any)=>{e?.preventDefault?.();this.setHeld(true)});
@@ -192,13 +209,20 @@ export default function GameCanvas({state,myId,onHoldChange}:Props) {
         for(let y=600;y<720;y+=24)g.lineBetween(0,y,WORLD_WIDTH,y);
         for(let x=0;x<=WORLD_WIDTH;x+=220)g.lineBetween(x,588,x-150,720);
         g.lineStyle(2,0x68ffd5,0.32);g.lineBetween(0,588,WORLD_WIDTH,588);
-        // track line / finish
+        // Sling anchors and lap checkpoints
         const anchors=makeAnchors();
         anchors.forEach((a,i)=>{
           const pulse=1+Math.sin(visualTime/260+i)*.15;
-          g.lineStyle(3,0x00e5ff,0.95);g.strokeCircle(a.x,a.y,10*pulse);
-          g.fillStyle(0xffffff,1);g.fillCircle(a.x,a.y,3);
-          if(i%6===0){g.fillStyle(0x7cff6b,1);g.fillRect(a.x-2,a.y+16,4,34)}
+          g.fillStyle(0x9e8cff,0.08);g.fillCircle(a.x,a.y,15*pulse);
+          g.lineStyle(i%6===0?2.5:1.5,i%6===0?0xc6b7ff:0x8ce9f0,i%6===0?0.82:0.62);
+          g.strokeCircle(a.x,a.y,(i%6===0?9:7)*pulse);
+          g.fillStyle(0xf3f0ff,i%6===0?0.95:0.78);g.fillCircle(a.x,a.y,i%6===0?2.6:2);
+          if(i%6===0){
+            g.lineStyle(2,0xbba8ff,0.48);
+            g.lineBetween(a.x-15,a.y+17,a.x+15,a.y+17);
+            g.fillStyle(0xc9bcff,0.78);
+            g.fillCircle(a.x-15,a.y+17,1.8);g.fillCircle(a.x+15,a.y+17,1.8);
+          }
         });
         // Falling meteoroid rocks — colour & fall speed scale with current lap
         const nowSec=current?.startedAt
@@ -276,19 +300,59 @@ export default function GameCanvas({state,myId,onHoldChange}:Props) {
           g.fillStyle(0xff4fd8, 0.95); g.fillCircle(mine.x, mine.y, mine.r * 0.56 * pulse);
           g.fillStyle(0xffffff, 0.95); g.fillCircle(mine.x - 3, mine.y - 4, 4);
         }
-        // Framed lap / finish gate with a glowing threshold
-        const gateGlow=0.08+Math.sin(visualTime/180)*0.025;
-        g.fillStyle(0x46eaff,gateGlow);g.fillRect(10776,106,64,534);
-        g.fillStyle(0x67f4ff,0.95);g.fillRect(10774,104,10,538);g.fillRect(10834,104,10,538);
-        g.fillRect(10774,104,70,10);
-        g.fillStyle(0xffffff,0.22+gateGlow);g.fillRect(10784,114,50,7);
-        g.lineStyle(2,0xd6fbff,0.85);g.lineBetween(10784,114,10834,114);
-        for(let y=0;y<640;y+=32){
-          g.fillStyle((y/32)%2?0xffffff:0x160b32,1);g.fillRect(10800,y,16,32);
-          g.fillStyle((y/32)%2?0x160b32:0xffffff,1);g.fillRect(10816,y,16,32);
+        // Rare ember bombs: obsidian casing, molten seams, and a sparking fuse.
+        for (let i = 0; i < BOMB_COUNT; i++) {
+          const bomb = bombAt(i, nowSec);
+          const pulse = 1 + Math.sin(visualTime / 180 + i * 2) * 0.08;
+          const ember = 0.68 + (Math.sin(visualTime / 52 + i * 2) + 1) * 0.16;
+          g.fillStyle(0xff633d, 0.065); g.fillCircle(bomb.x, bomb.y, bomb.r * 2.2 * pulse);
+          g.lineStyle(1.5, 0xff835e, 0.42 + pulse * 0.12); g.strokeCircle(bomb.x, bomb.y, bomb.r * 1.48 * pulse);
+
+          // Heavy metal collar and a jagged, animated ember fuse.
+          g.fillStyle(0x82766f, 1);
+          g.fillPoints([
+            {x:bomb.x-8,y:bomb.y-16},{x:bomb.x-6,y:bomb.y-22},
+            {x:bomb.x+5,y:bomb.y-22},{x:bomb.x+8,y:bomb.y-15},
+          ], true);
+          g.lineStyle(3, 0xff9b52, 0.95); g.lineBetween(bomb.x + 4, bomb.y - 20, bomb.x + 9, bomb.y - 28);
+          g.lineStyle(2, 0xffd278, ember); g.lineBetween(bomb.x + 9, bomb.y - 28, bomb.x + 14, bomb.y - 31);
+          g.fillStyle(0xff7a3d, ember); g.fillPoints([
+            {x:bomb.x+13,y:bomb.y-31},{x:bomb.x+15,y:bomb.y-38},
+            {x:bomb.x+18,y:bomb.y-33},{x:bomb.x+23,y:bomb.y-34},
+            {x:bomb.x+19,y:bomb.y-29},{x:bomb.x+20,y:bomb.y-25},
+          ], true);
+          g.fillStyle(0xffedb0, ember); g.fillCircle(bomb.x + 17, bomb.y - 32, 2);
+
+          // Charcoal sphere with bright lava fractures and a hard specular glint.
+          g.fillStyle(0x21181b, 1); g.fillCircle(bomb.x, bomb.y, bomb.r * pulse);
+          g.fillStyle(0x382126, 0.9); g.fillCircle(bomb.x - 2, bomb.y - 3, bomb.r * 0.72 * pulse);
+          g.lineStyle(2, 0xc66b50, 0.88); g.strokeCircle(bomb.x, bomb.y, bomb.r * pulse);
+          g.fillStyle(0xffddbd, 0.32); g.fillEllipse(bomb.x - 7, bomb.y - 10, 8, 4);
+          g.lineStyle(2, 0xff7548, 0.95);
+          g.lineBetween(bomb.x - 3, bomb.y - 17, bomb.x - 8, bomb.y - 8);
+          g.lineBetween(bomb.x - 8, bomb.y - 8, bomb.x - 3, bomb.y - 3);
+          g.lineBetween(bomb.x + 7, bomb.y - 2, bomb.x + 2, bomb.y + 5);
+          g.lineBetween(bomb.x + 2, bomb.y + 5, bomb.x + 9, bomb.y + 13);
+          g.lineStyle(1, 0xffc57a, 0.9);
+          g.lineBetween(bomb.x - 15, bomb.y + 2, bomb.x - 11, bomb.y + 2);
+          g.lineBetween(bomb.x + 11, bomb.y - 10, bomb.x + 14, bomb.y - 10);
         }
-        g.fillStyle(0x7cf5ff,0.85);g.fillRect(10784,636,50,4);
-        g.fillStyle(0xffffff,0.95);g.fillRect(10796,634,4,8);g.fillRect(10818,634,4,8);
+        // A slim moonlit arch and refined checker stripe mark each lap's threshold.
+        const gatePulse=0.7+Math.sin(visualTime/240)*0.12;
+        g.fillStyle(0x9b7bff,0.035+gatePulse*0.025);g.fillRect(10790,118,20,470);
+        g.fillStyle(0x9b7bff,0.13);g.fillRect(10778,104,8,484);g.fillRect(10814,104,8,484);
+        g.fillStyle(0xc8b8ff,0.78);g.fillRect(10780,104,40,3);
+        g.fillStyle(0xffffff,0.7);g.fillRect(10782,108,36,1);
+        g.lineStyle(1.5,0xc6b7ff,0.62+gatePulse*0.2);
+        g.lineBetween(10788,112,10788,588);g.lineBetween(10812,112,10812,588);
+        g.lineStyle(2,0xb8f3f1,0.58+gatePulse*0.2);g.lineBetween(10800,112,10800,588);
+        for(let y=0;y<588;y+=20){
+          const alternate=(y/20)%2===0;
+          g.fillStyle(alternate?0xe9e2ff:0x20203a,alternate?0.88:0.94);
+          g.fillRect(10794,y,6,10);
+          g.fillStyle(alternate?0x20203a:0xe9e2ff,alternate?0.94:0.88);
+          g.fillRect(10794,y+10,6,10);
+        }
         const laps=current?.totalLaps??TOTAL_LAPS;
         const myLap=mine?.lap??0;
         const onLast=!!mine?.finished||myLap>=laps-1;
@@ -297,73 +361,79 @@ export default function GameCanvas({state,myId,onHoldChange}:Props) {
         g.fillStyle(0xffffff,1);
         // Phaser canvas has no dependable text drawing via graphics; label is separate below.
         const camera=this.cameras.main;
-        // Keep the full vertical playfield visible in portrait. Landscape has
-        // more horizontal room, so zoom into the playable band and trim empty sky.
-        const portrait=window.matchMedia('(orientation: portrait)').matches;
-        const framedWorldHeight=portrait?WORLD_HEIGHT/0.95:680;
-        const fitZoom=this.scale.height/framedWorldHeight;
+        // Frame the playable band for the game's landscape layout.
+        const fitZoom=this.scale.height/680;
         const zoom=Math.max(0.25,Math.min(1.15,fitZoom));
         if(zoom>0&&Math.abs(camera.zoom-zoom)>0.001)camera.setZoom(zoom);
         if(mine){
           const cameraEase=1-Math.pow(1-(slowMo?0.025:0.12),delta/16.67);
           const visibleWorldWidth=this.scale.width/Math.max(camera.zoom,0.01);
           camera.scrollX=Phaser.Math.Linear(camera.scrollX,Math.max(0,mine.x-visibleWorldWidth*0.3),cameraEase);
-          const visibleWorldHeight=this.scale.height/Math.max(camera.zoom,0.01);
-          const targetY=Math.max(0,Math.min(WORLD_HEIGHT-visibleWorldHeight,mine.y-visibleWorldHeight*0.38));
-          camera.scrollY=Phaser.Math.Linear(camera.scrollY,targetY,cameraEase*0.7);
         }
+        // Keep the vertical camera fixed so spawning and respawning don't look
+        // like the ghost suddenly jumps as the camera catches up.
+        camera.scrollY=0;
         const seen=new Set<string>();
-        const players=current?.players||[];
+        const players=(current?.players||[]).filter(p=>!p.eliminated);
         players.forEach(p=>{
           seen.add(p.id);
           if(p.attached&&p.anchorX!==null&&p.anchorY!==null){
             g.lineStyle(p.id===myId?3:2,p.id===myId?0xffffff:0xffd84f,0.95);
             g.lineBetween(p.x,p.y,p.anchorX,p.anchorY);
           }
-          const bob=Math.sin(visualTime/155+p.x*0.013)*3.5;
           const overlapping=players.filter(other=>Math.hypot(other.x-p.x,other.y-p.y)<48);
           const overlapIndex=overlapping.findIndex(other=>other.id===p.id);
           const spacing=(overlapIndex-(overlapping.length-1)/2)*38;
           const ghostX=p.x+spacing+Math.sin(visualTime/380+p.y*0.02)*2;
-          const ghostY=p.y+bob;
-          const hem=(offset:number)=>Math.sin(visualTime/115+p.x*0.018+offset)*3;
-          const robe=[
-            {x:ghostX-17,y:ghostY-5},{x:ghostX-21,y:ghostY+10},
-            {x:ghostX-19,y:ghostY+25},{x:ghostX-23,y:ghostY+32+hem(0)},
-            {x:ghostX-12,y:ghostY+29+hem(1)},{x:ghostX-4,y:ghostY+34+hem(2)},
-            {x:ghostX+5,y:ghostY+30+hem(3)},{x:ghostX+14,y:ghostY+34+hem(4)},
-            {x:ghostX+23,y:ghostY+30+hem(5)},{x:ghostX+18,y:ghostY+18},
-            {x:ghostX+17,y:ghostY-5}
-          ];
-          const online=p.connected!==false;
-          const bodyA=online?0.98:0.45;
+          const ghostY=p.y;
           const heroColor=Phaser.Display.Color.HexStringToColor(p.color || '#5cefff').color;
-          // White sheet ghost with a rounded hood, rippling hem, and a bright team-color rim.
+          const wave=visualTime/180+p.x*.018;
+          const robe=[{x:ghostX-17,y:ghostY-4}];
+          for(let i=0;i<=16;i++){
+            const angle=Math.PI-i*Math.PI/16;
+            robe.push({x:ghostX+Math.cos(angle)*17,y:ghostY-4-Math.sin(angle)*20});
+          }
+          robe.push({x:ghostX+18,y:ghostY+17});
+          for(let i=0;i<=24;i++){
+            const t=i/24;
+            const x=ghostX+18-t*36;
+            const y=ghostY+26+Math.sin(t*Math.PI*4+wave)*2.2;
+            robe.push({x,y});
+          }
+          robe.push({x:ghostX-18,y:ghostY+17});
+          // Layer a soft team-color aura behind a smooth, rippling sheet silhouette.
+          g.fillStyle(heroColor,0.11+Math.sin(visualTime/170+p.x*.01)*0.025);
+          g.fillCircle(ghostX,ghostY+2,39);
           if (p.shieldCharge) { g.lineStyle(2.5, 0x7cff6b, 0.9); g.strokeCircle(ghostX, ghostY + 1, 36 + Math.sin(visualTime / 90) * 2); g.fillStyle(0x7cff6b, 0.07); g.fillCircle(ghostX, ghostY + 1, 34); }
-          const glow = 0.09 + Math.sin(visualTime / 130 + p.x * 0.01) * 0.025;
-          g.fillStyle(heroColor, glow); g.fillCircle(ghostX, ghostY + 2, 37);
           const trail = Math.min(34, Math.abs(p.vx) * 0.018);
-          g.lineStyle(5, 0xe8fdff, online ? 0.28 : 0.1);
-          g.lineBetween(ghostX - 14, ghostY + 5, ghostX - 25 - trail, ghostY + 2);
-          g.lineStyle(3, 0xe8fdff, online ? 0.58 : 0.2);
-          g.lineBetween(ghostX - 13, ghostY + 16, ghostX - 24 - trail * 0.75, ghostY + 20);
-          g.fillStyle(0xf1fdff, online ? 0.99 : 0.58); g.fillPoints(robe, true);
-          g.fillEllipse(ghostX, ghostY - 11, 39, 43);
-          g.fillStyle(0xbcefff, online ? 0.28 : 0.12); g.fillEllipse(ghostX, ghostY + 7, 18, 25);
-          g.lineStyle(2.5, heroColor, online ? 0.95 : 0.38); g.strokePoints(robe, true);
-          g.lineStyle(2, heroColor, online ? 0.9 : 0.35); g.strokeEllipse(ghostX, ghostY - 11, 39, 43);
-          // Oversized midnight eyes and a tiny white glint keep the face readable at speed.
-          g.fillStyle(0x5cefff, online ? 0.16 : 0.06); g.fillEllipse(ghostX, ghostY - 12, 27, 17);
-          g.fillStyle(0x28304b, online ? 1 : 0.48);
-          g.fillEllipse(ghostX - 7, ghostY - 12, 5, 8);
-          g.fillEllipse(ghostX + 7, ghostY - 12, 5, 8);
-          g.fillStyle(0xffffff, online ? 0.95 : 0.5);
+          g.lineStyle(2.5,heroColor,0.3);
+          g.lineBetween(ghostX-17,ghostY+4,ghostX-27-trail,ghostY+1);
+          g.lineStyle(1.5,0xe8fdff,0.32);
+          g.lineBetween(ghostX-16,ghostY+15,ghostX-24-trail*.72,ghostY+18);
+          g.fillStyle(0xf7fdff,0.98); g.fillPoints(robe,true);
+          g.fillStyle(heroColor,0.16); g.fillEllipse(ghostX,ghostY+8,22,27);
+          g.lineStyle(2.5,heroColor,0.96); g.strokePoints(robe,true);
+          // Bright, oversized eyes and tiny highlights make the face readable at speed.
+          g.fillStyle(0x293047,1);
+          g.fillEllipse(ghostX-7,ghostY-9,6,10);
+          g.fillEllipse(ghostX+7,ghostY-9,6,10);
+          g.fillStyle(0xffffff,0.98);
+          g.fillCircle(ghostX-8,ghostY-11,1.5);
+          g.fillCircle(ghostX+6,ghostY-11,1.5);
+          g.fillStyle(heroColor,0.34);
+          g.fillEllipse(ghostX-13,ghostY+1,5,3);
+          g.fillEllipse(ghostX+13,ghostY+1,5,3);
+          // A small four-point star gives each racer a bright signature mark.
+          g.fillStyle(0xffffff,0.88);
           g.fillPoints([
-            {x:ghostX,y:ghostY+2},{x:ghostX+3,y:ghostY+8},{x:ghostX+9,y:ghostY+9},
-            {x:ghostX+4,y:ghostY+13},{x:ghostX+5,y:ghostY+19},{x:ghostX,y:ghostY+15},
-            {x:ghostX-5,y:ghostY+19},{x:ghostX-4,y:ghostY+13},{x:ghostX-9,y:ghostY+9},
-            {x:ghostX-3,y:ghostY+8}
-          ], true);
+            {x:ghostX,y:ghostY+7},{x:ghostX+2,y:ghostY+11},{x:ghostX+6,y:ghostY+13},
+            {x:ghostX+2,y:ghostY+15},{x:ghostX,y:ghostY+19},{x:ghostX-2,y:ghostY+15},
+            {x:ghostX-6,y:ghostY+13},{x:ghostX-2,y:ghostY+11}
+          ],true);
+          g.lineStyle(1.5,heroColor,0.58);
+          g.strokeEllipse(ghostX,ghostY-27,17,5);
+          g.fillStyle(heroColor,0.95);
+          g.fillCircle(ghostX,ghostY-30,2.5);
           if(p.finished){g.fillStyle(0x7cff6b,1);g.fillCircle(ghostX,ghostY-42,7)}
           let label=this.labels.get(p.id);
           if(!label){label=this.add.text(p.x,p.y-54,'',{fontFamily:'Rubik, Arial',fontSize:'13px',fontStyle:'bold',color:'#ffffff',backgroundColor:'#170b39bb',padding:{x:5,y:3}}).setOrigin(.5);this.labels.set(p.id,label)}
@@ -375,7 +445,7 @@ export default function GameCanvas({state,myId,onHoldChange}:Props) {
     const game=new Phaser.Game({type:Phaser.CANVAS,parent:hostRef.current,width:1100,height:640,
       backgroundColor:'#0b0827',render:{antialias:true},scale:{mode:Phaser.Scale.RESIZE,autoCenter:Phaser.Scale.CENTER_BOTH},scene:RushScene});
     // RESIZE gives the scene the stage's real dimensions; camera zoom is then
-    // calculated from the viewport height so portrait doesn't stretch a landscape image.
+    // calculated from the viewport height for the landscape race layout.
     return()=>{sceneRef.current=null;game.destroy(true)};
   },[myId]);
 

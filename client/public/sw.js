@@ -1,5 +1,5 @@
 /* Ghost Rush — minimal service worker for installability + offline shell */
-const CACHE = 'ghost-rush-v1';
+const CACHE = 'ghost-rush-v2';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -7,7 +7,7 @@ const PRECACHE = [
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
-  '/ghost-rush-mark.svg',
+  '/ghost-rush-icon.svg',
 ];
 
 self.addEventListener('install', (event) => {

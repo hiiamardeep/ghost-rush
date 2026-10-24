@@ -743,7 +743,7 @@ button:not(:disabled):active { transform: translateY(2px); }
   from { filter: brightness(1); }
   to { filter: brightness(1.15); }
 }
-.fullscreen-actions {
+.game-actions {
   position: absolute;
   top: max(12px, env(safe-area-inset-top));
   right: max(12px, env(safe-area-inset-right));
@@ -751,7 +751,7 @@ button:not(:disabled):active { transform: translateY(2px); }
   gap: 8px;
   z-index: 10;
 }
-.fullscreen-actions .icon-action {
+.game-actions .icon-action {
   background: rgba(10, 8, 24, 0.75);
   backdrop-filter: blur(8px);
 }
@@ -1565,8 +1565,8 @@ body { overflow-x: hidden; }
   bottom: clamp(10px, 1.8vw, 22px);
   gap: 10px;
 }
-.fullscreen-actions { gap: 8px; }
-.fullscreen-actions .icon-action {
+.game-actions { gap: 8px; }
+.game-actions .icon-action {
   width: 44px;
   height: 44px;
   background: rgba(12,10,28,.84);
@@ -1826,53 +1826,6 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px 
 }
 
 
-/* Portrait gameplay: use the available mobile viewport and avoid the unused lower canvas area. */
-@media (max-width: 600px) and (orientation: portrait) {
-  .game-stage {
-    height: 76dvh;
-    min-height: 500px;
-    max-height: 820px;
-    border-radius: 12px;
-  }
-  .game-fullscreen, .canvas-shell, .game-canvas { min-height: 0; height: 100%; }
-  .game-canvas canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
-  .points-hud { left: 8px; right: 8px; bottom: 8px; align-items: stretch; justify-content: space-between; }
-  .spirit-score-card { flex: 1 1 auto; min-width: 0; }
-  .spirit-score-copy > span { white-space: normal; line-height: 1.25; }
-}
-@media (max-width: 390px) and (orientation: portrait) {
-  .game-stage { height: 74dvh; min-height: 460px; }
-  .points-hud { left: 5px; right: 5px; bottom: 5px; gap: 5px; }
-  .spirit-score-copy > span { display: block; font-size: 7px; }
-}
-
-/* Portrait canvas: preserve the game world's aspect ratio instead of stretching a
-   landscape race scene into a tall phone-shaped canvas. This removes the empty void. */
-@media (max-width: 600px) and (orientation: portrait) {
-  .game-stage {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    aspect-ratio: 1100 / 640;
-    display: block;
-    background: #080713;
-  }
-  .game-fullscreen, .canvas-shell, .game-canvas {
-    width: 100%;
-    height: auto !important;
-    min-height: 0 !important;
-    aspect-ratio: 1100 / 640;
-  }
-  .game-canvas canvas {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain;
-  }
-  .points-hud { bottom: 8px; left: 8px; right: 8px; }
-  .spirit-score-card { max-width: 58%; }
-}
-
 /* Lap progress is presented as a neon race circuit with distinct checkpoint gates. */
 .lap-progress {
   display: grid;
@@ -1904,78 +1857,6 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px 
   .lap-progress-foot b { font-size:8px; }
 }
 
-/* Final mobile viewport correction: keep the race scene landscape-shaped inside
-   the portrait page, and make the entire race control stack compact and readable. */
-@media (max-width: 600px) and (orientation: portrait) {
-  .race {
-    gap: 9px;
-    padding: 5px 0 max(12px, env(safe-area-inset-bottom));
-    min-width: 0;
-  }
-  .race-head {
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 8px;
-  }
-  .race-head small { font-size: 8px; }
-  .race-head h2 { font-size: clamp(20px, 5.8vw, 27px); }
-  .race-actions { gap: 5px; flex-wrap: nowrap; }
-  .race-actions .icon-action { width: 39px; height: 39px; }
-  .race-actions .subtle { padding: 7px 8px; font-size: 9px; }
-  .hud-strip.has-laps {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0;
-    margin: 0;
-    border-radius: 12px;
-  }
-  .hud-strip > div { min-width: 0; padding: 8px 7px; }
-  .hud-strip small { font-size: 7px; letter-spacing: .06em; }
-  .hud-strip strong { font-size: clamp(12px, 3.6vw, 15px); }
-  .game-stage {
-    display: block;
-    width: 100%;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    aspect-ratio: 1100 / 640;
-    flex: 0 0 auto;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .game-fullscreen {
-    display: block;
-    width: 100%;
-    height: 100% !important;
-    min-height: 0 !important;
-    aspect-ratio: 1100 / 640;
-  }
-  .canvas-shell, .game-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100% !important;
-    min-height: 0 !important;
-    aspect-ratio: auto;
-  }
-  .game-canvas canvas {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain;
-  }
-  .points-hud { left: 6px; right: 6px; bottom: 6px; gap: 5px; align-items: flex-end; }
-  .spirit-score-card { max-width: 62%; padding: 6px 8px; }
-  .spirit-score-copy > span { display: none; }
-  .shield-status { padding: 6px 8px; max-width: 42%; }
-  .shield-status strong { font-size: 8px; }
-  .shield-status small { font-size: 8px; }
-  .lap-progress { margin: 0; padding: 9px 10px; gap: 6px; }
-  .lap-progress-track { height: 14px; }
-  .lap-progress-track > span { width: 16px; height: 16px; }
-  .lap-progress-foot { font-size: 7px; }
-  .control-tip { padding: 8px 10px; gap: 5px 8px; }
-  .control-tip small { display: none; }
-}
 
 /* Fullscreen finish state uses a dedicated spectral victory treatment. */
 .finish-banner {
@@ -2366,6 +2247,7 @@ body {
   border-radius: 0;
 }
 
+
 .progress { color: #8ba49b; }
 .lap-progress {
   border-color: var(--premium-line);
@@ -2574,19 +2456,15 @@ kbd {
 }
 
 
-/* ── Orientation-aware gameplay layout ────────────────────────────────────
-   Give the race canvas the available viewport height and let Phaser resize
-   its camera instead of stretching the 1100×640 drawing into a phone shape. */
+/* Landscape gameplay layout. */
 .race {
   display: flex;
   flex-direction: column;
   min-width: 0;
   gap: 10px;
 }
-.race-head { order: 1; margin: 0; }
-.hud-strip { order: 2; }
+.race-head { margin: 0; }
 .game-stage {
-  order: 3;
   position: relative;
   display: block;
   flex: 0 0 auto;
@@ -2624,56 +2502,9 @@ kbd {
   touch-action: pan-y;
 }
 .game-stage.is-racing canvas { touch-action: none; }
-.lap-progress { order: 4; margin-block: 0; }
-.control-tip { order: 5; }
-.match-lobby { order: 6; margin-block: 0; }
-.room-chat { order: 7; }
-.race-standings { order: 8; }
-.results-showcase { order: 9; }
-.race > .error { order: 10; }
+.lap-progress { margin-block: 0; }
+.match-lobby { margin-block: 0; }
 
-/* Portrait: keep the playable area tall and immediate, with room for thumb play. */
-@media (max-width: 700px) and (orientation: portrait) {
-  .shell {
-    padding-top: max(8px, env(safe-area-inset-top));
-    padding-inline: 10px;
-    padding-bottom: max(18px, env(safe-area-inset-bottom));
-  }
-  .topbar { min-height: 43px; padding: 3px 0 8px; }
-  .race { gap: 8px; padding-top: 5px; }
-  .race-head { padding: 0 0 2px; gap: 6px; }
-  .race-head h2 { font-size: clamp(20px, 5.6vw, 27px); }
-  .race-head small { font-size: 7px; }
-  .race-actions { gap: 4px; flex-wrap: nowrap; }
-  .race-actions .icon-action { width: 34px; height: 34px; border-radius: 10px; }
-  .race-actions .subtle { min-height: 32px; padding: 6px 8px; font-size: 8px; }
-  .hud-strip.has-laps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .hud-strip > div { min-width: 0; padding: 7px 5px; }
-  .hud-strip small { font-size: 6px; letter-spacing: .045em; }
-  .hud-strip strong { font-size: clamp(11px, 3.4vw, 14px); }
-  .hud-strip em { font-size: 8px; }
-  .game-stage {
-    height: clamp(340px, 54dvh, 560px);
-    width: 100%;
-    border-radius: 14px;
-  }
-  .points-hud { left: 7px; right: 7px; bottom: 7px; gap: 6px; align-items: flex-end; }
-  .spirit-score-card { max-width: 60%; padding: 7px 8px; }
-  .spirit-score-copy small { font-size: 7px; }
-  .spirit-score-copy strong { font-size: 15px; }
-  .spirit-score-copy > span { display: none; }
-  .shield-status { max-width: 43%; min-width: 0; padding: 7px 8px; gap: 6px; }
-  .shield-status strong, .shield-status small { font-size: 8px; }
-  .lap-progress { padding: 9px 10px; gap: 6px; }
-  .lap-progress-heading span { font-size: 7px; }
-  .lap-progress-heading strong { font-size: 9px; }
-  .lap-progress-foot { font-size: 7px; }
-  .lap-progress-foot b { font-size: 8px; }
-  .control-tip { padding: 3px 2px 5px; }
-  .control-tip p { font-size: 10px; line-height: 1.4; text-align: center; }
-  .match-lobby { padding: 8px; gap: 8px; }
-  .room-chat { border-radius: 12px; }
-}
 
 /* Landscape phone/tablet: compact chrome, wide race stage, fewer distractions. */
 @media (max-width: 1000px) and (orientation: landscape) {
@@ -2746,35 +2577,6 @@ kbd {
   aspect-ratio: auto;
 }
 
-@media (max-width: 700px) and (orientation: portrait) {
-  .shell.is-racing {
-    padding: max(6px, env(safe-area-inset-top)) 8px max(10px, env(safe-area-inset-bottom));
-  }
-  .shell.is-racing > .topbar { display: flex; padding-bottom: 5px; margin-bottom: 0; }
-  .shell.is-racing .install-btn, .shell.is-racing .install-help { display: none; }
-  .shell.is-racing .race { gap: 6px; padding-top: 0; padding-bottom: 0; }
-  .shell.is-racing .race-head { min-height: 34px; }
-  .game-stage {
-    display: block !important;
-    height: clamp(300px, calc(100dvh - 160px), 1000px) !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    aspect-ratio: auto !important;
-  }
-  .game-canvas canvas {
-    object-fit: contain !important;
-  }
-  .game-fullscreen, .canvas-shell, .game-canvas {
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    aspect-ratio: auto !important;
-  }
-  .game-stage:fullscreen, .game-stage:-webkit-full-screen {
-    width: 100vw !important;
-    height: 100dvh !important;
-  }
-}
 
 @media (max-width: 1000px) and (orientation: landscape) {
   .shell.is-racing {
@@ -2788,35 +2590,6 @@ kbd {
   }
 }
 
-@media (min-width: 701px) and (max-width: 1000px) and (orientation: portrait) {
-  .shell.is-racing > .topbar { display: flex; padding-bottom: 5px; margin-bottom: 0; }
-  .shell.is-racing .install-btn, .shell.is-racing .install-help { display: none; }
-  .shell.is-racing { padding-top: max(8px, env(safe-area-inset-top)); }
-  .shell.is-racing .race { gap: 8px; padding-top: 0; padding-bottom: 0; }
-  .game-stage {
-    height: clamp(380px, calc(100dvh - 170px), 900px);
-  }
-}
-
-/* Portrait gameplay uses a 4:3 camera window; the world is cropped by the
-   camera viewport and keeps its proportions instead of being stretched. */
-@media (max-width: 1000px) and (orientation: portrait) {
-  .game-stage:not(:fullscreen):not(:-webkit-full-screen) {
-    width: 100%;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    aspect-ratio: 4 / 3 !important;
-  }
-  .game-stage:fullscreen .game-fullscreen,
-  .game-stage:-webkit-full-screen .game-fullscreen {
-    position: absolute;
-    inset: 50% auto auto 50%;
-    transform: translate(-50%, -50%);
-    width: min(100vw, 133.333dvh);
-    height: min(75vw, 100dvh);
-  }
-}
 
 /* Room chat stays horizontal at every viewport size. */
 .room-chat {
@@ -2913,3 +2686,1256 @@ kbd {
   .room-chat-form input { min-height: 38px; padding: 6px 7px; font-size: 12px; }
   .room-chat-form button { flex-basis: 36px; width: 36px; min-width: 36px; min-height: 38px; }
 }
+
+/* Gameplay overlays */
+.shell:fullscreen,
+.shell:-webkit-full-screen {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  overflow: auto;
+  background: #080713;
+}
+
+.game-overlay-header {
+  position: absolute;
+  z-index: 6;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  right: max(112px, calc(env(safe-area-inset-right) + 96px));
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  pointer-events: none;
+}
+.game-overlay-header > * { pointer-events: auto; }
+.game-overlay-header .race-head {
+  flex: 0 0 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+.game-overlay-header .race-head h2 { font-size: clamp(16px, 2vw, 24px); }
+.game-overlay-header .race-head small { font-size: 7px; }
+.game-overlay-header .race-actions { flex-wrap: nowrap; }
+.game-overlay-header .race-actions .secondary,
+.game-overlay-header .race-actions .subtle { min-height: 32px; padding: 5px 9px; font-size: 9px; }
+.game-overlay-header .hud-strip {
+  position: static;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  align-content: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 3px 14px;
+  width: auto;
+  max-width: 100%;
+  padding: 2px 0 0;
+  overflow: visible;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.game-overlay-header .hud-strip > div {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
+}
+.game-overlay-header .hud-strip small {
+  color: rgba(208,225,230,.65);
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: .07em;
+}
+.game-overlay-header .hud-strip strong {
+  color: #f4fbff;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.game-overlay-header .hud-strip strong.accent { color: var(--cyan); }
+.game-overlay-header .hud-strip strong em { font-size: 9px; }
+
+.game-fullscreen > .game-actions {
+  position: absolute;
+  z-index: 10;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.game-fullscreen > .game-actions .icon-action { width: 40px; height: 40px; }
+.game-fullscreen > .control-tip { display: none; }
+.game-actions .chat-toggle {
+  align-self: center;
+  padding: 5px 2px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(240,249,255,.9);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-shadow: 0 1px 5px #000;
+}
+.game-actions .chat-toggle span { margin-left: 3px; color: var(--cyan); font-family: var(--mono); }
+.game-actions .chat-toggle:hover { background: transparent; color: var(--cyan); }
+
+.game-fullscreen > .match-lobby {
+  position: absolute;
+  z-index: 7;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: min(92%, 560px);
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.game-fullscreen > .match-lobby .match-roster { max-width: 100%; justify-content: center; gap: 4px; }
+.game-fullscreen > .match-lobby .match-player { padding: 4px 7px; font-size: 10px; }
+.game-fullscreen > .match-lobby .match-start {
+  min-width: 156px;
+  min-height: 42px;
+  padding: 9px 22px;
+  border-radius: 999px;
+}
+
+.game-fullscreen > .room-chat {
+  position: absolute;
+  z-index: 11;
+  top: calc(54px + env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: min(320px, 42vw);
+  max-height: 42%;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  color: #f3fbff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.95);
+}
+.game-fullscreen > .room-chat .room-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 8px;
+}
+.game-fullscreen > .room-chat .room-chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  max-height: 100px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: auto;
+}
+.game-fullscreen > .room-chat .room-chat-line { gap: 6px; font-size: 10px; }
+.game-fullscreen > .room-chat .room-chat-form {
+  display: flex;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.game-fullscreen > .room-chat .room-chat-form input {
+  min-height: 30px;
+  padding: 3px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(230,245,250,.4);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: white;
+  font-size: 11px;
+}
+.game-fullscreen > .room-chat .room-chat-form input::placeholder { color: rgba(230,245,250,.68); }
+.game-fullscreen > .room-chat .room-chat-form button {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 30px;
+  padding: 2px 5px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--cyan);
+  font-size: 15px;
+}
+.game-fullscreen > .floating-chat-message {
+  position: absolute;
+  z-index: 12;
+  left: 50%;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  width: max-content;
+  max-width: min(52%, 560px);
+  color: #fff;
+  transform: translateX(-50%);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0,0,0,.95), 0 0 14px rgba(0,0,0,.8);
+  animation: chat-float-in 5s ease both;
+  pointer-events: none;
+}
+.game-fullscreen > .floating-chat-message b { flex: 0 0 auto; font-size: 10px; }
+.game-fullscreen > .floating-chat-message span { overflow-wrap: anywhere; }
+@keyframes chat-float-in {
+  0% { opacity: 0; translate: 0 8px; }
+  12%, 78% { opacity: 1; translate: 0 0; }
+  100% { opacity: 0; translate: 0 -12px; }
+}
+
+.game-fullscreen > .lap-progress {
+  position: absolute;
+  z-index: 6;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: min(40%, 460px);
+  margin: 0;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.game-fullscreen > .lap-progress .lap-progress-heading span,
+.game-fullscreen > .lap-progress .lap-progress-foot { font-size: 7px; letter-spacing: .12em; }
+.game-fullscreen > .lap-progress .lap-progress-heading span { color: rgba(205,230,224,.66); }
+.game-fullscreen > .lap-progress .lap-progress-heading strong { font-size: 10px; text-shadow: 0 0 12px rgba(104,255,213,.3); }
+.game-fullscreen > .lap-progress .lap-progress-track {
+  height: 18px;
+  padding: 0 2px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.game-fullscreen > .lap-progress .lap-progress-track::before {
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, rgba(104,255,213,.18), rgba(104,255,213,.42), rgba(104,255,213,.18));
+}
+.game-fullscreen > .lap-progress .lap-progress-track > i {
+  top: 50%;
+  bottom: auto;
+  height: 2px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, #52c7a5, #85e4c5, #d5ff9b);
+  box-shadow: 0 0 10px rgba(104,255,213,.5);
+}
+.game-fullscreen > .lap-progress .lap-progress-track > span {
+  width: auto;
+  height: auto;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(230,245,240,.64);
+  font: 800 7px var(--mono);
+  text-shadow: 0 1px 4px rgba(0,0,0,.9);
+}
+.game-fullscreen > .lap-progress .lap-progress-track > span.passed {
+  background: transparent;
+  color: var(--lime);
+  text-shadow: 0 0 9px rgba(167,255,107,.65);
+}
+.game-fullscreen > .points-hud {
+  position: absolute;
+  z-index: 8;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: auto;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: clamp(10px, 2vw, 22px);
+  max-width: min(44%, 480px);
+}
+.game-fullscreen > .points-hud .spirit-score-card,
+.game-fullscreen > .points-hud .shield-status {
+  min-width: 0;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.game-fullscreen > .points-hud .spirit-score-icon {
+  width: auto;
+  height: auto;
+  flex-basis: auto;
+  border-radius: 0;
+  background: transparent;
+  font-size: 17px;
+  text-shadow: 0 0 14px rgba(104,255,213,.55);
+}
+.game-fullscreen > .points-hud .spirit-score-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+  fill: currentColor;
+  filter: drop-shadow(0 0 7px rgba(104,255,213,.5));
+}
+.game-fullscreen > .points-hud .spirit-score-icon svg circle { fill: #182532; }
+.game-fullscreen > .points-hud .spirit-score-copy small {
+  color: rgba(205,230,224,.66);
+  font-size: 6px;
+  letter-spacing: .13em;
+}
+.game-fullscreen > .points-hud .spirit-score-copy strong {
+  color: #f4fff9;
+  font-size: 16px;
+  text-shadow: 0 0 14px rgba(104,255,213,.28);
+}
+.game-fullscreen > .points-hud .shield-status { align-items: center; gap: 6px; }
+.game-fullscreen > .points-hud .shield-status > span { font-size: 16px; text-shadow: 0 0 12px currentColor; }
+.game-fullscreen > .points-hud .shield-status strong { font-size: 8px; letter-spacing: .08em; }
+.game-fullscreen > .points-hud .shield-status small { font-size: 7px; color: rgba(205,230,224,.62); }
+.game-fullscreen > .points-hud .shield-status.active strong,
+.game-fullscreen > .points-hud .shield-status.active > span { color: var(--lime); }
+.game-fullscreen > .points-hud .spirit-score-copy > span { display: none; }
+.game-fullscreen > .points-hud .shield-status.active { box-shadow: none; }
+
+/* Keep the lower HUD light, aligned, and readable over the track. */
+.game-fullscreen > .lap-progress {
+  display: grid;
+  gap: 4px;
+  padding: 4px 8px;
+}
+.game-fullscreen > .lap-progress .lap-progress-heading {
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.game-fullscreen > .lap-progress .lap-progress-heading span { display: none; }
+.game-fullscreen > .lap-progress .lap-progress-heading span {
+  font-size: 6px;
+  letter-spacing: .18em;
+  color: rgba(216,239,232,.58);
+}
+.game-fullscreen > .lap-progress .lap-progress-heading strong {
+  font-size: 9px;
+  letter-spacing: .1em;
+}
+.game-fullscreen > .lap-progress .lap-progress-track { height: 14px; }
+.game-fullscreen > .lap-progress .lap-progress-track::before { height: 1px; }
+.game-fullscreen > .lap-progress .lap-progress-track > i { height: 2px; }
+.game-fullscreen > .lap-progress .lap-progress-foot {
+  color: rgba(216,239,232,.52);
+  font-size: 6px;
+  letter-spacing: .14em;
+}
+.game-fullscreen > .lap-progress .lap-progress-foot b {
+  color: #d8fff0;
+  font-size: 8px;
+}
+.game-fullscreen > .points-hud { align-items: center; gap: clamp(12px, 2.5vw, 26px); }
+.game-fullscreen > .points-hud .spirit-score-card { align-items: center; gap: 6px; }
+.game-fullscreen > .points-hud .spirit-score-copy { gap: 2px; }
+.game-fullscreen > .points-hud .shield-status > div { display: grid; gap: 2px; }
+.game-fullscreen > .points-hud .shield-status small { white-space: nowrap; }
+.logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* Landing screen finishing details */
+.install-btn,
+.install-help summary { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.install-icon {
+  display: block;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.shell > .landing {
+  position: relative;
+  isolation: isolate;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: clamp(34px, 7vw, 112px);
+  padding-block: clamp(26px, 5vh, 68px);
+}
+.shell > .landing::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: min(66vw, 850px);
+  aspect-ratio: 1;
+  left: 4%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(157,123,255,.13), rgba(92,239,255,.06) 38%, transparent 70%);
+  pointer-events: none;
+}
+.shell > .landing::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: clamp(180px, 27vw, 360px);
+  aspect-ratio: 1;
+  left: 28%;
+  bottom: 2%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(157,123,255,.09), rgba(92,239,255,.045) 42%, transparent 72%);
+  filter: blur(12px);
+  pointer-events: none;
+  animation: spectral-drift 8s ease-in-out infinite alternate;
+}
+@keyframes spectral-drift {
+  from { transform: translate3d(-8px, 5px, 0) scale(.96); opacity: .62; }
+  to { transform: translate3d(12px, -10px, 0) scale(1.04); opacity: 1; }
+}
+.shell > .landing .landing-copy { max-width: 770px; }
+.shell > .landing .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: #c9bcff;
+}
+.shell > .landing .tag::before { display: none; }
+.tag-ghost {
+  width: 17px;
+  height: 17px;
+  fill: rgba(201,188,255,.16);
+  stroke: #c9bcff;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 7px rgba(157,123,255,.55));
+}
+.shell > .landing h1 {
+  margin-block: 18px 14px;
+  font-size: clamp(54px, 7.4vw, 104px);
+  line-height: .88;
+  letter-spacing: -.085em;
+  text-shadow: 0 12px 70px rgba(157,123,255,.2);
+}
+.shell > .landing h1 span {
+  background-image: linear-gradient(100deg, #c9bcff, #8ce9f0 62%, #a7ffb5);
+}
+.shell > .landing .landing-copy > p { max-width: 440px; line-height: 1.7; }
+.shell > .landing .hero-art {
+  width: min(100%, 475px);
+  max-height: 260px;
+  margin: 6px 0 -16px -8px;
+  filter: drop-shadow(0 18px 48px rgba(157,123,255,.2));
+}
+.shell > .landing > .panel { position: relative; z-index: 1; }
+.shell > .landing > .panel {
+  padding: clamp(22px, 2.8vw, 32px);
+  border-color: rgba(157,123,255,.25);
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(157,123,255,.14), transparent 45%),
+    linear-gradient(150deg, rgba(23,22,46,.97), rgba(8,18,24,.98));
+  box-shadow: 0 28px 80px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.055);
+}
+.shell > .landing .panel-head {
+  margin-bottom: 22px;
+  color: #e7e4ff;
+  font-size: 10px;
+  letter-spacing: .17em;
+}
+.shell > .landing .panel label { margin-top: 15px; color: #b5b2d0; }
+.shell > .landing .panel input {
+  background: rgba(5,7,17,.64);
+  border-color: rgba(181,169,231,.2);
+}
+.shell > .landing .panel input:focus { border-color: rgba(157,123,255,.7); }
+.shell > .landing .divider { margin-block: 18px 14px; }
+.shell > .landing .primary,
+.shell > .landing .secondary,
+.shell > .landing .join-row button { min-height: 45px; border-radius: 12px; }
+.shell > .landing .primary { box-shadow: 0 8px 22px rgba(104,255,213,.13); }
+.shell > .landing .solo-button { color: #d6d1f2; }
+
+/* Moonlit landing theme; gameplay keeps its own in-race palette. */
+.shell.is-landing {
+  background:
+    radial-gradient(ellipse 56% 44% at 13% 48%, rgba(105,83,194,.16), transparent 72%),
+    radial-gradient(ellipse 42% 38% at 82% 25%, rgba(69,166,185,.09), transparent 70%),
+    linear-gradient(145deg, rgba(12,12,29,.32), rgba(5,13,20,.2));
+}
+.shell.is-landing .topbar {
+  border-bottom-color: rgba(185,165,255,.17);
+}
+.shell.is-landing .logo {
+  background: linear-gradient(145deg, #8072c9, #3e7790) !important;
+  border-color: rgba(208,199,255,.3);
+  box-shadow: 0 5px 22px rgba(122,105,207,.22), inset 0 1px 0 rgba(255,255,255,.32) !important;
+}
+.shell.is-landing .brand b {
+  background-image: linear-gradient(105deg, #c9bcff, #8ce9f0 65%, #a7ffb5);
+}
+.shell.is-landing .connection { border-color: rgba(185,165,255,.18); }
+.shell.is-landing .connection.on { color: #a7ffb5; }
+.shell.is-landing .install-btn,
+.shell.is-landing .install-help summary {
+  border-color: rgba(185,165,255,.22);
+  background: rgba(136,119,205,.08);
+  color: #d0c8ef;
+}
+.shell.is-landing .install-btn:hover,
+.shell.is-landing .install-help summary:hover,
+.shell.is-landing .support-link:hover {
+  border-color: rgba(185,165,255,.5);
+  color: #e4dcff;
+  box-shadow: 0 0 22px rgba(157,123,255,.15);
+}
+.shell.is-landing .install-help-body {
+  background: #111126;
+  border-color: rgba(185,165,255,.2);
+}
+.shell.is-landing .panel .primary {
+  background: linear-gradient(112deg, #a99aff, #82dbe7) !important;
+  color: #101223;
+  box-shadow: 0 8px 24px rgba(157,123,255,.2) !important;
+}
+.shell.is-landing .panel .primary:hover:not(:disabled) {
+  background: linear-gradient(112deg, #c0b5ff, #a1f0f0) !important;
+  box-shadow: 0 10px 28px rgba(157,123,255,.28) !important;
+}
+.shell.is-landing .panel .secondary,
+.shell.is-landing .panel .join-row button {
+  border-color: rgba(185,165,255,.23);
+  background: rgba(174,160,237,.055);
+  color: #e2def3;
+}
+.shell.is-landing .panel .secondary:hover:not(:disabled),
+.shell.is-landing .panel .join-row button:hover:not(:disabled) {
+  border-color: rgba(140,233,240,.55);
+  color: #aef4f4;
+}
+
+@media (max-width: 900px) {
+  .shell > .landing { gap: 20px; padding-block: 22px; }
+  .shell > .landing .landing-copy { text-align: center; align-items: center; }
+  .shell > .landing .tag { align-self: center; }
+  .shell > .landing h1 { font-size: clamp(46px, 8vw, 72px); }
+  .shell > .landing .landing-copy > p { margin-inline: auto; }
+  .shell > .landing .hero-art { display: none; }
+  .shell > .landing > .panel { width: min(100%, 450px); align-self: center; }
+}
+@media (max-width: 600px) {
+  .install-icon { width: 13px; height: 13px; }
+  .shell > .landing { gap: 16px; padding-block: 18px; }
+  .shell > .landing h1 { margin-block: 12px 9px; font-size: clamp(42px, 11vw, 58px); }
+  .shell > .landing .landing-copy > p { max-width: 340px; font-size: 12px; }
+  .shell > .landing > .panel { padding: 20px 16px; border-radius: 18px; }
+  .shell > .landing .panel-head { margin-bottom: 15px; }
+  .shell > .landing .divider { margin-block: 13px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shell > .landing::after { animation: none; }
+}
+
+.game-fullscreen > .race-overlay-standings {
+  position: absolute;
+  z-index: 9;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  width: min(340px, 38%);
+  color: var(--text);
+}
+.game-fullscreen > .race-overlay-standings > summary {
+  width: max-content;
+  margin-left: auto;
+  padding: 8px 11px;
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  background: rgba(8,17,20,.88);
+  color: var(--cyan);
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  list-style: none;
+}
+.game-fullscreen > .race-overlay-standings > summary::-webkit-details-marker { display: none; }
+.game-fullscreen > .race-overlay-standings[open] .race-standings {
+  max-height: min(55dvh, 360px);
+  margin: 6px 0 0;
+  overflow: auto;
+}
+.game-fullscreen > .race-overlay-standings .race-standings-head { padding: 10px; }
+.game-fullscreen > .race-overlay-standings .race-standings-head h3 { font-size: 12px; }
+.game-fullscreen > .race-overlay-standings .race-standings-columns { display: none; }
+.game-fullscreen > .race-overlay-standings .race-standing { padding: 7px 9px; }
+
+.game-stage.is-finished .game-overlay-header,
+.game-stage.is-finished .points-hud,
+.game-stage.is-finished .lap-progress,
+.game-stage.is-finished .control-tip,
+.game-stage.is-finished .match-lobby,
+.game-stage.is-finished .race-overlay-standings { display: none; }
+.game-stage.is-finished .room-chat,
+.game-stage.is-finished .floating-chat-message { display: none; }
+.game-fullscreen > .results-showcase.celebrate {
+  position: absolute;
+  z-index: 12;
+  top: 50%;
+  left: 50%;
+  width: min(820px, calc(100% - 28px));
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  padding: 22px 26px 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,216,79,.12), transparent 58%), linear-gradient(155deg, rgba(20,25,44,.97), rgba(8,14,22,.98));
+  box-shadow: 0 24px 80px rgba(0,0,0,.55), 0 0 60px rgba(255,216,79,.17), inset 0 1px rgba(255,255,255,.12);
+  backdrop-filter: blur(18px);
+  animation: winner-card-in .55s cubic-bezier(.2,.8,.2,1) both;
+}
+.game-fullscreen > .results-showcase.is-winner {
+  border-color: rgba(255,216,79,.72);
+  box-shadow: 0 24px 80px rgba(0,0,0,.55), 0 0 75px rgba(255,216,79,.27), inset 0 1px rgba(255,255,255,.16);
+}
+.results-showcase.is-winner .results-heading h2 {
+  background: linear-gradient(100deg, #fff7d6, #ffd84f 45%, #fff0a8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 16px rgba(255,216,79,.22));
+}
+@keyframes winner-card-in {
+  from { opacity: 0; transform: translate(-50%, -46%) scale(.94); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.game-fullscreen > .results-showcase .results-actions { gap: 8px; margin-top: 2px; }
+.game-fullscreen > .results-showcase .results-again,
+.game-fullscreen > .results-showcase .results-exit {
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-soft);
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+.game-fullscreen > .results-showcase .results-again:not(:disabled):hover,
+.game-fullscreen > .results-showcase .results-exit:not(:disabled):hover {
+  background: transparent;
+  color: var(--cyan);
+  text-shadow: 0 0 14px rgba(104,255,213,.3);
+}
+.game-fullscreen > .results-showcase .results-again:focus-visible,
+.game-fullscreen > .results-showcase .results-exit:focus-visible { outline: 1px solid var(--cyan); outline-offset: 3px; }
+
+@media (max-width: 700px) {
+  .game-overlay-header { top: 6px; left: 6px; right: 104px; gap: 5px 10px; }
+  .game-overlay-header .race-head { padding: 0; }
+  .game-overlay-header .race-head h2 { font-size: 15px; }
+  .game-overlay-header .race-head small { font-size: 6px; }
+  .game-overlay-header .race-actions { gap: 3px; }
+  .game-overlay-header .race-actions .secondary,
+  .game-overlay-header .race-actions .subtle { min-height: 28px; padding: 4px 6px; font-size: 8px; }
+  .game-overlay-header .hud-strip { flex-basis: 300px; gap: 3px 10px; padding-top: 1px; }
+  .game-overlay-header .hud-strip > div { gap: 4px; padding: 2px 0; }
+  .game-overlay-header .hud-strip small { font-size: 5px; }
+  .game-overlay-header .hud-strip strong { font-size: 10px; }
+  .game-fullscreen > .game-actions { top: 6px; right: 6px; gap: 5px; }
+  .game-fullscreen > .game-actions .icon-action { width: 34px; height: 34px; }
+  .game-actions .chat-toggle { font-size: 8px; }
+  .game-fullscreen > .room-chat { top: 46px; right: 6px; width: min(260px, 48vw); }
+  .game-fullscreen > .room-chat .room-chat-list { max-height: 70px; }
+  .game-fullscreen > .match-lobby .match-player { padding: 3px 5px; font-size: 8px; }
+  .game-fullscreen > .match-lobby .match-start { min-height: 38px; padding-inline: 16px; font-size: 10px; }
+  .game-fullscreen > .lap-progress { left: 6px; bottom: 6px; width: 42%; padding: 5px; }
+  .game-fullscreen > .lap-progress .lap-progress-foot span { display: none; }
+  .game-fullscreen > .points-hud { right: 6px; bottom: 6px; max-width: 48%; gap: 7px; }
+  .game-fullscreen > .floating-chat-message { bottom: 62px; gap: 5px; font-size: 10px; }
+  .game-fullscreen > .floating-chat-message b { font-size: 9px; }
+  .game-fullscreen > .race-overlay-standings { right: 6px; bottom: 58px; width: min(280px, 55%); }
+}
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .shell:fullscreen,
+  .shell:-webkit-full-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    overflow: auto;
+  }
+  .shell:fullscreen > .topbar,
+  .shell:-webkit-full-screen > .topbar { display: none; }
+  .shell:fullscreen > .race,
+  .shell:-webkit-full-screen > .race { flex: 1 1 auto; min-height: 0; gap: 0; padding: 0; }
+  .shell:fullscreen .game-stage,
+  .shell:-webkit-full-screen .game-stage { flex: 1 1 auto; width: 100%; height: auto; min-height: 0; max-height: none; border-radius: 10px; }
+  .shell:fullscreen .game-overlay-header,
+  .shell:-webkit-full-screen .game-overlay-header { top: 7px; left: 10px; right: 112px; gap: 4px 12px; }
+  .shell:fullscreen .game-overlay-header .race-head,
+  .shell:-webkit-full-screen .game-overlay-header .race-head { min-height: 28px; padding: 0 2px; }
+  .shell:fullscreen .game-overlay-header .race-head h2,
+  .shell:-webkit-full-screen .game-overlay-header .race-head h2 { font-size: 16px; }
+  .shell:fullscreen .game-overlay-header .race-head small,
+  .shell:-webkit-full-screen .game-overlay-header .race-head small { font-size: 6px; }
+  .shell:fullscreen .game-overlay-header .race-actions,
+  .shell:-webkit-full-screen .game-overlay-header .race-actions { display: none; }
+  .shell:fullscreen .game-overlay-header .hud-strip,
+  .shell:-webkit-full-screen .game-overlay-header .hud-strip { flex-wrap: wrap; gap: 3px 10px; }
+  .shell:fullscreen .game-overlay-header .hud-strip > div,
+  .shell:-webkit-full-screen .game-overlay-header .hud-strip > div { padding: 2px 0; }
+  .shell:fullscreen .game-overlay-header .hud-strip strong,
+  .shell:-webkit-full-screen .game-overlay-header .hud-strip strong { font-size: 10px; }
+  .shell:fullscreen .game-fullscreen > .floating-chat-message,
+  .shell:-webkit-full-screen .game-fullscreen > .floating-chat-message { bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .shell:fullscreen .game-fullscreen > .results-showcase.celebrate,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase.celebrate { grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; padding: 14px 18px 12px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .results-heading h2,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .results-heading h2 { font-size: 25px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .results-heading p,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .results-heading p { font-size: 11px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .results-score,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .results-score { padding: 4px 12px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .results-score .score-pop,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .results-score .score-pop { font-size: 27px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .score-chips,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .score-chips { margin-top: 5px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .score-chips span,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .score-chips span { padding: 3px 6px; font-size: 8px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .results-stats,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .results-stats { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 18px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .results-stats strong,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .results-stats strong { font-size: 16px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .results-podium,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .results-podium { max-height: 74px; overflow: auto; padding-top: 6px; }
+  .shell:fullscreen .game-fullscreen > .results-showcase .podium-row,
+  .shell:-webkit-full-screen .game-fullscreen > .results-showcase .podium-row { padding: 5px 8px; font-size: 10px; }
+}
+
+/* Finish banner hierarchy and spacing */
+.game-fullscreen > .results-showcase.celebrate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(205px, .72fr);
+  gap: 16px 26px;
+  padding: clamp(18px, 3vh, 28px) clamp(20px, 3vw, 34px) 18px;
+  border: 1px solid rgba(146,213,190,.34);
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(104,255,213,.12), transparent 45%),
+    linear-gradient(145deg, rgba(15,32,36,.97), rgba(7,15,21,.985));
+  box-shadow: 0 28px 90px rgba(0,0,0,.58), 0 0 55px rgba(104,255,213,.12), inset 0 1px 0 rgba(255,255,255,.1);
+}
+.game-fullscreen > .results-showcase.celebrate::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(170,255,224,.72), transparent);
+  pointer-events: none;
+}
+.game-fullscreen > .results-showcase .results-heading,
+.game-fullscreen > .results-showcase .results-score,
+.game-fullscreen > .results-showcase .results-stats,
+.game-fullscreen > .results-showcase .results-podium,
+.game-fullscreen > .results-showcase .results-actions { position: relative; z-index: 2; }
+.game-fullscreen > .results-showcase .results-heading { align-self: center; padding: 4px 0; }
+.game-fullscreen > .results-showcase .results-kicker {
+  margin-bottom: 9px;
+  color: #8ce8c5;
+  font-size: 9px;
+  letter-spacing: .2em;
+}
+.game-fullscreen > .results-showcase .results-heading h2 {
+  margin: 0 0 8px;
+  color: #f0fff9;
+  font-size: clamp(27px, 4vw, 42px);
+  line-height: 1;
+  letter-spacing: -.055em;
+}
+.game-fullscreen > .results-showcase .results-heading p { color: rgba(212,234,225,.68); font-size: 12px; }
+.game-fullscreen > .results-showcase .results-score {
+  align-self: center;
+  padding: 12px 18px;
+  border: 1px solid rgba(142,221,191,.16);
+  border-radius: 17px;
+  background: linear-gradient(145deg, rgba(104,255,213,.055), rgba(255,255,255,.018));
+}
+.game-fullscreen > .results-showcase .results-score > span { color: rgba(181,221,205,.7); font-size: 8px; letter-spacing: .17em; }
+.game-fullscreen > .results-showcase .results-score { min-width: 205px; }
+.game-fullscreen > .results-showcase .results-score .score-pop {
+  margin: 6px 0 0;
+  color: #c9ffe9;
+  font-size: clamp(30px, 4.2vw, 44px);
+  line-height: 1;
+  text-shadow: 0 0 24px rgba(104,255,213,.18);
+}
+.game-fullscreen > .results-showcase .results-stats {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  justify-content: center;
+  gap: clamp(24px, 6vw, 64px);
+  padding: 12px 6px 2px;
+  border-top: 1px solid rgba(181,221,205,.12);
+}
+.game-fullscreen > .results-showcase .results-stats > div { align-items: center; gap: 4px; }
+.game-fullscreen > .results-showcase .results-stats span { color: rgba(181,221,205,.58); font-size: 7px; letter-spacing: .16em; }
+.game-fullscreen > .results-showcase .results-stats strong { color: #e6f6ef; font-size: 17px; }
+.game-fullscreen > .results-showcase .results-podium { gap: 5px; max-height: 96px; padding-top: 2px; }
+.game-fullscreen > .results-showcase .podium-row { border-color: rgba(181,221,205,.09); border-radius: 10px; background: rgba(255,255,255,.025); }
+.game-fullscreen > .results-showcase .podium-row.you { border-color: rgba(104,255,213,.2); background: rgba(104,255,213,.055); }
+.game-fullscreen > .results-showcase .results-actions { gap: 12px; margin-top: 0; }
+.game-fullscreen > .results-showcase .results-again,
+.game-fullscreen > .results-showcase .results-exit { min-height: 34px; padding: 7px 13px; font-size: 9px; }
+.game-fullscreen > .results-showcase .results-actions > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 124px;
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .09em;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.game-fullscreen > .results-showcase .results-again {
+  color: #092019;
+  border-color: rgba(194,255,227,.65);
+  background: linear-gradient(120deg, #80e6c7, #b8ec9e) !important;
+  box-shadow: 0 6px 18px rgba(104,255,213,.16), inset 0 1px 0 rgba(255,255,255,.55);
+}
+.game-fullscreen > .results-showcase .results-again:disabled {
+  color: #547168;
+  background: linear-gradient(120deg, #8cb5a7, #a9c29f) !important;
+  opacity: .72;
+}
+.game-fullscreen > .results-showcase .results-exit {
+  color: #d8e9e1;
+  border-color: rgba(186,218,203,.28);
+  background: rgba(255,255,255,.055);
+}
+.game-fullscreen > .results-showcase .results-exit:not(:disabled):hover {
+  color: #f2fff8;
+  border-color: rgba(186,218,203,.52);
+  background: rgba(255,255,255,.1);
+}
+.game-fullscreen > .results-showcase .results-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 150px));
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+  gap: 12px;
+}
+.game-fullscreen > .results-showcase .results-actions > button {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  min-height: 42px;
+  margin: 0;
+}
+.game-fullscreen > .results-showcase.is-winner {
+  border-color: rgba(255,218,137,.58);
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255,211,116,.15), transparent 48%),
+    linear-gradient(145deg, rgba(34,31,34,.98), rgba(14,17,22,.99));
+  box-shadow: 0 28px 90px rgba(0,0,0,.58), 0 0 58px rgba(255,211,116,.16), inset 0 1px 0 rgba(255,255,255,.12);
+}
+.game-fullscreen > .results-showcase.is-winner .results-kicker { color: #f4d78c; }
+.game-fullscreen > .results-showcase.is-winner .results-score .score-pop { color: #fff0c4; }
+
+@media (max-width: 700px) {
+  .game-fullscreen > .results-showcase.celebrate { grid-template-columns: minmax(0,1fr) minmax(132px,.7fr); gap: 10px 12px; padding: 15px 14px 12px; border-radius: 17px; }
+  .game-fullscreen > .results-showcase .results-kicker { margin-bottom: 6px; font-size: 7px; }
+  .game-fullscreen > .results-showcase .results-heading h2 { font-size: clamp(21px, 5vw, 30px); }
+  .game-fullscreen > .results-showcase .results-heading p { font-size: 9px; }
+  .game-fullscreen > .results-showcase .results-score { min-width: 0; padding: 8px 9px; border-radius: 12px; }
+  .game-fullscreen > .results-showcase .results-score .score-pop { font-size: clamp(23px, 5vw, 32px); }
+  .game-fullscreen > .results-showcase .results-stats { gap: 20px; padding-top: 8px; }
+  .game-fullscreen > .results-showcase .results-stats strong { font-size: 14px; }
+  .game-fullscreen > .results-showcase .results-podium { max-height: 64px; }
+  .game-fullscreen > .results-showcase .results-actions { grid-template-columns: repeat(2, minmax(0, 136px)); gap: 8px; }
+  .game-fullscreen > .results-showcase .results-actions > button { height: 38px; min-height: 38px; padding: 7px 8px; font-size: 9px; }
+}
+
+/* Moonlit spectral theme for the race finish banner. */
+.game-fullscreen > .results-showcase.celebrate {
+  border-color: rgba(177,158,255,.42);
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(153,124,255,.2), transparent 48%),
+    radial-gradient(ellipse at 100% 100%, rgba(91,179,226,.09), transparent 48%),
+    linear-gradient(145deg, rgba(25,20,48,.98), rgba(8,14,25,.99));
+  box-shadow: 0 28px 90px rgba(0,0,0,.6), 0 0 58px rgba(146,120,255,.2), inset 0 1px 0 rgba(235,225,255,.13);
+}
+.game-fullscreen > .results-showcase.celebrate::before {
+  background: linear-gradient(90deg, transparent, rgba(211,195,255,.85), rgba(137,222,255,.65), transparent);
+}
+.game-fullscreen > .results-showcase .results-kicker { color: #c8b2ff; }
+.game-fullscreen > .results-showcase .results-heading h2 {
+  background: linear-gradient(100deg, #f7f1ff, #c9b6ff 58%, #9ce8f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 16px rgba(167,142,255,.22));
+}
+.game-fullscreen > .results-showcase .results-score {
+  border-color: rgba(177,158,255,.2);
+  background: linear-gradient(145deg, rgba(160,132,255,.11), rgba(255,255,255,.025));
+}
+.game-fullscreen > .results-showcase .results-score > span,
+.game-fullscreen > .results-showcase .results-stats span { color: rgba(205,192,235,.72); }
+.game-fullscreen > .results-showcase .results-score .score-pop {
+  color: #e5dcff;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 0 0 24px rgba(177,158,255,.25);
+}
+.game-fullscreen > .results-showcase .results-stats { border-top-color: rgba(177,158,255,.17); }
+.game-fullscreen > .results-showcase .results-stats strong { color: #eee8ff; }
+.game-fullscreen > .results-showcase .podium-row { border-color: rgba(177,158,255,.13); }
+.game-fullscreen > .results-showcase .podium-row.you { border-color: rgba(177,158,255,.34); background: rgba(153,124,255,.1); }
+.game-fullscreen > .results-showcase .results-again {
+  color: #17112c;
+  border-color: rgba(229,217,255,.72);
+  background: linear-gradient(120deg, #c8b3ff, #a8def4) !important;
+  box-shadow: 0 6px 18px rgba(153,124,255,.24), inset 0 1px 0 rgba(255,255,255,.62);
+}
+.game-fullscreen > .results-showcase .results-again:disabled {
+  color: #645d77;
+  background: linear-gradient(120deg, #aaa0bc, #9db7c1) !important;
+}
+.game-fullscreen > .results-showcase .results-exit { color: #dfd8f0; border-color: rgba(205,192,235,.32); }
+.game-fullscreen > .results-showcase .results-exit:not(:disabled):hover { border-color: rgba(205,192,235,.6); background: rgba(177,158,255,.1); }
+.game-fullscreen > .results-showcase.is-winner {
+  border-color: rgba(208,186,255,.68);
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(174,143,255,.24), transparent 48%),
+    radial-gradient(ellipse at 100% 100%, rgba(103,206,235,.13), transparent 48%),
+    linear-gradient(145deg, rgba(31,23,58,.99), rgba(9,15,27,.99));
+  box-shadow: 0 28px 90px rgba(0,0,0,.62), 0 0 66px rgba(165,135,255,.28), inset 0 1px 0 rgba(241,233,255,.16);
+}
+.game-fullscreen > .results-showcase.is-winner .results-kicker { color: #e0ceff; }
+.game-fullscreen > .results-showcase.is-winner .results-score .score-pop { color: #f0eaff; }
+.game-fullscreen > .results-showcase.new-best:not(.is-winner) { border-color: rgba(198,179,255,.55); }
+.game-fullscreen > .results-showcase.new-best:not(.is-winner) .results-kicker { color: #d2bdff; }
+.game-fullscreen > .results-showcase .results-again:not(:disabled):hover {
+  color: #100d22;
+  border-color: #ece5ff;
+  background: linear-gradient(120deg, #ded0ff, #c6f1ff) !important;
+  box-shadow: 0 8px 24px rgba(172,145,255,.42), inset 0 1px 0 rgba(255,255,255,.8);
+  transform: translateY(-2px);
+}
+.game-fullscreen > .results-showcase .results-exit:not(:disabled):hover {
+  color: #fff;
+  border-color: #cfbdff;
+  background: rgba(164,137,255,.2);
+  box-shadow: 0 6px 18px rgba(134,105,228,.2);
+  transform: translateY(-2px);
+}
+.game-fullscreen > .results-showcase .results-again:focus-visible,
+.game-fullscreen > .results-showcase .results-exit:focus-visible {
+  outline: 2px solid #c8b3ff;
+  outline-offset: 3px;
+}
+
+/* Coordinate the bottom lap rail with the spectral finish gate. */
+.game-fullscreen > .lap-progress .lap-progress-track {
+  height: 18px;
+  padding: 0 3px;
+  overflow: visible;
+}
+.game-fullscreen > .lap-progress .lap-progress-track::before {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(177,158,255,.16), rgba(177,158,255,.38) 52%, rgba(151,222,244,.45));
+}
+.game-fullscreen > .lap-progress .lap-progress-track > i {
+  background: linear-gradient(90deg, #a78bfa, #c3b3ff 65%, #9de7f1);
+  box-shadow: 0 0 8px rgba(177,158,255,.55), 0 0 14px rgba(157,231,241,.2);
+}
+.game-fullscreen > .lap-progress .lap-progress-track > span {
+  color: rgba(219,211,239,.74);
+  font-size: 7px;
+  text-shadow: 0 1px 4px rgba(0,0,0,.95);
+}
+.game-fullscreen > .lap-progress .lap-progress-track > span.passed {
+  color: #c6f4f0;
+  text-shadow: 0 0 9px rgba(157,231,241,.7);
+}
+.game-fullscreen > .lap-progress .lap-progress-track > span:nth-of-type(3) { margin-right: 8px; }
+
+/* One shared bottom rail keeps progress and race stats level without panels. */
+.game-fullscreen > .game-bottom-hud {
+  position: absolute;
+  z-index: 8;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: max(16px, env(safe-area-inset-left));
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(16px, 4vw, 56px);
+  pointer-events: none;
+}
+.game-fullscreen .game-bottom-hud > .lap-progress {
+  position: relative;
+  inset: auto;
+  order: 0;
+  flex: 1 1 40%;
+  width: auto;
+  min-width: 0;
+  max-width: 460px;
+  margin: 0;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.game-fullscreen .game-bottom-hud > .points-hud {
+  position: relative;
+  inset: auto;
+  order: 1;
+  flex: 0 1 auto;
+  max-width: 48%;
+  margin: 0;
+  align-items: flex-end;
+  gap: clamp(12px, 2vw, 24px);
+}
+.game-fullscreen .game-bottom-hud .spirit-score-card,
+.game-fullscreen .game-bottom-hud .shield-status {
+  min-width: 0;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.game-fullscreen .game-bottom-hud .spirit-score-icon {
+  width: auto;
+  height: auto;
+  flex-basis: auto;
+  border-radius: 0;
+  background: transparent;
+}
+.game-fullscreen .game-bottom-hud .spirit-score-icon svg { display: block; width: 18px; height: 18px; fill: currentColor; }
+.game-fullscreen .game-bottom-hud .spirit-score-copy small { color: rgba(205,192,235,.72); font-size: 6px; letter-spacing: .13em; }
+.game-fullscreen .game-bottom-hud .spirit-score-copy strong { color: #f3efff; font-size: 16px; text-shadow: 0 0 14px rgba(177,158,255,.25); }
+.game-fullscreen .game-bottom-hud .spirit-score-copy > span { display: none; }
+.game-fullscreen .game-bottom-hud .shield-status { align-items: center; color: rgba(214,207,231,.75); }
+.game-fullscreen .game-bottom-hud .shield-status > span { font-size: 16px; text-shadow: 0 0 12px currentColor; }
+.game-fullscreen .game-bottom-hud .shield-status strong { font-size: 8px; letter-spacing: .08em; }
+.game-fullscreen .game-bottom-hud .shield-status small { color: rgba(205,192,235,.62); font-size: 7px; }
+.game-fullscreen .game-bottom-hud .shield-status.active { color: #b8f3d7; }
+.game-fullscreen .game-bottom-hud .shield-status.active > span { color: #b8f3d7; }
+.game-fullscreen .game-bottom-hud .lap-progress-heading,
+.game-fullscreen .game-bottom-hud .lap-progress-foot { display: flex; align-items: center; justify-content: space-between; }
+.game-fullscreen .game-bottom-hud .lap-progress-heading span { display: none; }
+.game-fullscreen .game-bottom-hud .lap-progress-heading strong { color: #d4c5ff; font: 800 9px var(--mono); letter-spacing: .1em; }
+.game-fullscreen .game-bottom-hud .lap-progress-foot { color: rgba(205,192,235,.58); font-size: 6px; letter-spacing: .14em; }
+.game-fullscreen .game-bottom-hud .lap-progress-foot b { color: #e6e0f8; font: 800 8px var(--mono); }
+.game-fullscreen .game-bottom-hud .lap-progress-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 18px;
+  padding: 0 3px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.game-fullscreen .game-bottom-hud .lap-progress-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, rgba(177,158,255,.16), rgba(177,158,255,.38) 52%, rgba(151,222,244,.45));
+}
+.game-fullscreen .game-bottom-hud .lap-progress-track > i {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 50%;
+  bottom: auto;
+  height: 2px;
+  max-width: 100%;
+  transform: translateY(-50%);
+  border-radius: 99px;
+  background: linear-gradient(90deg, #a78bfa, #c3b3ff 65%, #9de7f1);
+  box-shadow: 0 0 8px rgba(177,158,255,.55), 0 0 14px rgba(157,231,241,.2);
+  transition: width .35s ease;
+}
+.game-fullscreen .game-bottom-hud .lap-progress-track > span {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: auto;
+  height: auto;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(219,211,239,.74);
+  font: 800 7px var(--mono);
+  text-shadow: 0 1px 4px rgba(0,0,0,.95);
+}
+.game-fullscreen .game-bottom-hud .lap-progress-track > span.passed { color: #c6f4f0; text-shadow: 0 0 9px rgba(157,231,241,.7); }
+.game-fullscreen .game-bottom-hud .lap-progress-track > span:nth-of-type(3) { margin-right: 8px; }
+.game-fullscreen .game-bottom-hud .lap-progress-heading,
+.game-fullscreen .game-bottom-hud .lap-progress-foot { min-height: 12px; }
+.game-fullscreen .game-bottom-hud .lap-progress-track { margin-block: 1px; }
+.game-fullscreen .game-bottom-hud .spirit-score-card,
+.game-fullscreen .game-bottom-hud .shield-status { align-self: flex-end; }
+.game-stage.is-finished .game-bottom-hud { display: none; }
+
+@media (max-width: 700px) {
+  .game-fullscreen > .game-bottom-hud {
+    right: max(6px, env(safe-area-inset-right));
+    bottom: max(6px, env(safe-area-inset-bottom));
+    left: max(6px, env(safe-area-inset-left));
+    gap: 10px;
+  }
+  .game-fullscreen .game-bottom-hud > .lap-progress {
+    flex: 1 1 43%;
+    padding: 3px 3px;
+  }
+  .game-fullscreen .game-bottom-hud > .points-hud {
+    flex: 0 1 50%;
+    max-width: 50%;
+    gap: 8px;
+  }
+  .game-fullscreen .game-bottom-hud .spirit-score-card,
+  .game-fullscreen .game-bottom-hud .shield-status { gap: 4px; }
+  .game-fullscreen .game-bottom-hud .spirit-score-copy small,
+  .game-fullscreen .game-bottom-hud .shield-status strong { font-size: 6px; }
+  .game-fullscreen .game-bottom-hud .spirit-score-copy strong { font-size: 13px; }
+  .game-fullscreen .game-bottom-hud .shield-status small { display: none; }
+  .game-fullscreen .game-bottom-hud .shield-status > span { font-size: 13px; }
+}
+@media (max-width: 390px) {
+  .game-fullscreen > .game-bottom-hud { gap: 6px; }
+  .game-fullscreen .game-bottom-hud > .points-hud { gap: 6px; }
+  .game-fullscreen .game-bottom-hud .lap-progress-foot span { display: none; }
+  .game-fullscreen .game-bottom-hud .spirit-score-icon svg { width: 15px; height: 15px; }
+}
+
+/* Minimal lower HUD: compact lap rail and quiet stat labels. */
+.game-fullscreen .game-bottom-hud { gap: clamp(12px, 3vw, 38px); }
+.game-fullscreen .game-bottom-hud > .lap-progress { gap: 1px; padding: 2px 4px; }
+.game-fullscreen .game-bottom-hud .lap-progress-heading,
+.game-fullscreen .game-bottom-hud .lap-progress-foot { min-height: 10px; }
+.game-fullscreen .game-bottom-hud .lap-progress-heading strong { color: rgba(226,217,255,.82); font-size: 8px; letter-spacing: .12em; }
+.game-fullscreen .game-bottom-hud .lap-progress-foot { justify-content: flex-start; font-size: 6px; letter-spacing: .12em; }
+.game-fullscreen .game-bottom-hud .lap-progress-foot b { color: rgba(228,241,239,.72); font-size: 7px; }
+.game-fullscreen .game-bottom-hud .lap-progress-track { height: 12px; margin: 0; }
+.game-fullscreen .game-bottom-hud .lap-progress-track::before { height: 1px; opacity: .72; }
+.game-fullscreen .game-bottom-hud .lap-progress-track > i { height: 2px; }
+.game-fullscreen .game-bottom-hud .lap-progress-track > span {
+  width: 4px;
+  height: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #a898d7;
+  font-size: 0;
+  box-shadow: 0 0 4px rgba(177,158,255,.45);
+}
+.game-fullscreen .game-bottom-hud .lap-progress-track > span.passed {
+  background: #b8f3e7;
+  box-shadow: 0 0 6px rgba(157,231,241,.62);
+}
+.game-fullscreen .game-bottom-hud .lap-progress-track > span:nth-of-type(3) { margin-right: 0; }
+.game-fullscreen .game-bottom-hud .spirit-score-card { gap: 5px; }
+.game-fullscreen .game-bottom-hud .spirit-score-icon svg { width: 16px; height: 16px; }
+.game-fullscreen .game-bottom-hud .spirit-score-copy { gap: 1px; }
+.game-fullscreen .game-bottom-hud .spirit-score-copy small { font-size: 6px; letter-spacing: .16em; }
+.game-fullscreen .game-bottom-hud .spirit-score-copy strong { font-size: 14px; }
+.game-fullscreen .game-bottom-hud .shield-status { gap: 5px; }
+.game-fullscreen .game-bottom-hud .shield-status > span { font-size: 14px; }
+.game-fullscreen .game-bottom-hud .shield-status strong { color: rgba(224,232,231,.78); font-size: 7px; letter-spacing: .1em; }
+.game-fullscreen > .results-showcase.is-eliminated {
+  border-color: rgba(255,135,160,.5);
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255,95,130,.16), transparent 48%),
+    linear-gradient(145deg, rgba(34,20,39,.98), rgba(12,14,25,.99));
+  box-shadow: 0 28px 90px rgba(0,0,0,.62), 0 0 52px rgba(255,95,130,.14), inset 0 1px 0 rgba(255,220,230,.1);
+}
+.game-fullscreen > .results-showcase.is-eliminated .results-kicker { color: #ff9db1; }
+.game-fullscreen > .results-showcase.is-eliminated .results-heading h2 {
+  background: none;
+  color: #ffe5eb;
+  -webkit-text-fill-color: currentColor;
+  filter: drop-shadow(0 0 14px rgba(255,95,130,.22));
+}
+.game-fullscreen > .results-showcase.is-eliminated .results-score .score-pop {
+  color: #ffe5eb;
+  text-shadow: 0 0 20px rgba(255,95,130,.2);
+}
+.game-fullscreen > .race-overlay-standings .race-standing.eliminated { opacity: .62; }
+.game-fullscreen > .race-overlay-standings .standing-status.eliminated { color: #ff9db1; }
