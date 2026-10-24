@@ -87,3 +87,4 @@ ghost-rush/
 - Players use browser stored guest IDs; there are no accounts.
 - The game supports private rooms of up to four players, not public matchmaking.
 - Persistent history, Redis, and multi-instance synchronization are not configured.
+# ghost-rush
