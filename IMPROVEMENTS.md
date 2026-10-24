@@ -1,4 +1,4 @@
-# Ghost Rush — gameplay upgrade
+# Ghost Rush gameplay updates
 
 ## Changes
 - Added moving, pulsing energy mines alongside meteors. The client renderer and authoritative server use the same deterministic mine positions, so multiplayer collisions stay consistent.
@@ -7,10 +7,11 @@
 - Kept the existing hold-to-swing controls and lap-based meteor ramp intact.
 
 ## Test
-From `client/`, run `npm install` (if needed) and `npm run build`.
-From `server/`, run `npm install` (if needed) and `npm run build`.
+Build the frontend from `client/` with `npm ci && npm run build`.
+Run the Python backend suite from `server-python/` with
+`python -m unittest discover -s tests -v`.
 
-Note: these are code-level upgrades; run a local multiplayer race and verify hazard timing before deploying.
+For a release, run a local multiplayer race and verify hazard timing before deploying.
 
 
 ## Spirit points update

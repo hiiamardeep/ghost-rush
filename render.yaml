@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: ghost-rush-python
+    runtime: python
+    region: singapore
+    plan: 0.5c-512mb
+    numInstances: 1
+    rootDir: server-python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run.py
+    healthCheckPath: /health
+    envVars:
+      - key: CLIENT_ORIGIN
+        sync: false

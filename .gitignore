@@ -1,6 +1,9 @@
 # Dependencies and generated output
 node_modules/
 dist/
+.venv/
+__pycache__/
+*.py[cod]
 coverage/
 .vite/
 *.tsbuildinfo

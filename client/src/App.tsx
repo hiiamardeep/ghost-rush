@@ -59,7 +59,13 @@ export default function App() {
   const finishTime = me?.finishTime ?? elapsed;
 
   useEffect(() => {
-    const s = io(SERVER_URL, { reconnection: true });
+    const s = io(SERVER_URL, {
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 800,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+    });
     setSocket(s);
     let rejoiningRoom = false;
     s.on('connect', () => {
